@@ -1,13 +1,13 @@
-package com.example.studyticketflow;
+package com.example.ticketflow;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class StudyTicketFlowApplication {
+public class TicketFlowApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(StudyTicketFlowApplication.class, args);
+		SpringApplication.run(TicketFlowApplication.class, args);
 	}
 
 }
