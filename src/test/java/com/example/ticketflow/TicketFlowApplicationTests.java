@@ -1,10 +1,10 @@
-package com.example.studyticketflow;
+package com.example.ticketflow;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class StudyTicketFlowApplicationTests {
+class TicketFlowApplicationTests {
 
 	@Test
 	void contextLoads() {
