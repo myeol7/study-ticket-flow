@@ -29,7 +29,7 @@ public class Reservation {
     private LocalDateTime expiredAt;
 
     // 예약 생성자
-    public Reservation(Long seatId, Long userId, ReservationStatus status, LocalDateTime expiredAt) {
+    public Reservation(Long seatId, Long userId, LocalDateTime expiredAt) {
         this.seatId = seatId;
         this.userId = userId;
         this.status = ReservationStatus.HELD;
