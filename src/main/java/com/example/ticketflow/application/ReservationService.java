@@ -35,4 +35,17 @@ public class ReservationService {
 
         return saved.getId();
     }
+
+    @Transactional
+    public Long confirmReservation(Long reservationId) {
+        // 1. 예약 조회
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약 ID입니다."));
+
+        // 2. 예약 확정
+        reservation.confirm();
+
+        // 3. 예약 ID 반환, 저장은 트랜잭션 커밋 시점에 자동으로 처리됨
+        return reservation.getId();
+    }
 }

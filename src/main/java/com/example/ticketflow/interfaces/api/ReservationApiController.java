@@ -4,6 +4,7 @@ import com.example.ticketflow.application.ReservationService;
 import com.example.ticketflow.application.dto.ReservationCreateCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +22,16 @@ public class ReservationApiController {
        } catch (IllegalStateException e) {
            return ResponseEntity.badRequest().body(e.getMessage());
        }
-}
+    }
+
+    @PostMapping("/api/reservations/{id}/confirm")
+    public ResponseEntity<String> confirmReservation(@PathVariable Long id) {
+        try{
+            reservationService.confirmReservation(id);
+            return ResponseEntity.ok("예약 확정 성공.");
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
 }
