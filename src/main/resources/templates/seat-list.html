@@ -17,65 +17,59 @@
     </style>
 </head>
 <script>
-    function holdSeat(seatId, userId) {
-        // 1. 보낼 데이터 준비 (Command 객체 모양대로 JSON 생성)
-        // DTO는 서버가 주는 것, Command는 우리가 보내는 것!
-        const command = {
-            seatId: seatId,
-            userId: userId
-        };
+    // 예약 요청 (Hold)
+    function holdSeat(seatId) {
+        const command = { seatId: seatId, userId: 999 }; // 테스트용 유저 ID
 
-        // 2. Fetch API로 서버에 POST 요청 (eGov의 $.ajax 와 동일)
         fetch('/api/reservations', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(command) // JS 객체를 JSON 문자열로 변환
-        }).then(response => {
-            if (response.ok) {
-                alert('예약(Hold) 성공!');
-                window.location.reload(); // 화면 새로고침해서 상태 반영
-            } else {
-                // 400 Bad Request 등의 에러 처리
-                return response.text().then(errorMessage => {
-                    alert('실패: ' + errorMessage);
-                });
-            }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(command)
         })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('서버 통신 중 오류가 발생했습니다.');
-        });
+            .then(handleResponse);
     }
 
-    // 좌석 클릭 이벤트 리스너 등록
+    // 예약 확정 (Confirm) - [신규 기능]
+    function confirmReservation(reservationId) {
+        fetch(`/api/reservations/${reservationId}/confirm`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(handleResponse);
+    }
+
+    // 공통 응답 처리
+    function handleResponse(response) {
+        if (response.ok) {
+            alert('처리되었습니다.');
+            window.location.reload();
+        } else {
+            response.text().then(msg => alert('실패: ' + msg));
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const seats = document.querySelectorAll('.seat-card');
 
         seats.forEach(seat => {
             seat.addEventListener('click', function() {
-                // 데이터 속성이나 텍스트에서 ID 추출 (지금은 임시로 텍스트 파싱)
-                // 실제로는 th:data-seat-id 속성을 쓰는 게 정석입니다.
-
-                // 편의상 화면의 상태 텍스트를 읽어옴
-                const statusText = this.querySelector('p').innerText;
+                const seatId = this.dataset.id;
+                // HTML에 th:data-reservation-id 속성이 추가되어야 함 (아래 HTML 수정 참고)
+                const reservationId = this.dataset.reservationId;
+                const status = this.querySelector('p').innerText;
                 const seatNo = this.querySelector('h3').innerText;
 
-                // 이미 예약된 좌석은 클릭 막기
-                if (statusText !== 'AVAILABLE') {
-                    alert('이미 예약된 좌석입니다.');
-                    return;
-                }
-
-                if (confirm(seatNo + ' 좌석을 예약하시겠습니까?')) {
-                    // 좌석 ID를 알기 위해 HTML 태그에 th:attr="data-id=${seat.seatId}" 추가가 필요함
-                    // 일단 임시로 seatId를 하드코딩해서 테스트하거나,
-                    // HTML을 조금 수정해야 함. (아래 가이드 참고)
-
-                    // 테스트를 위해 임의의 User ID 999 사용
-                    const seatId = this.dataset.id;
-                    holdSeat(seatId, 999);
+                if (status === 'AVAILABLE') {
+                    if (confirm(seatNo + ' 좌석을 예약(Hold) 하시겠습니까?')) {
+                        holdSeat(seatId);
+                    }
+                } else if (status === 'HELD') {
+                    // HELD 상태면 확정할지 물어봄
+                    if (confirm(seatNo + ' 예약을 확정(Confirm) 하시겠습니까?')) {
+                        confirmReservation(reservationId);
+                    }
+                } else {
+                    alert('이미 확정된 좌석입니다.');
                 }
             });
         });
@@ -88,7 +82,7 @@
         <div th:each="seat : ${seats}"
             class="seat-card"
             th:classappend="'status-' + ${seat.status}"
-            th:attr="data-id=${seat.seatId}">
+             th:attr="data-id=${seat.seatId}, data-reservation-id=${seat.reservationId}">
 
             <h3 th:text="${seat.seatCode}">A-1</h3>
             <p th:text="${seat.status}">AVAILABLE</p>
