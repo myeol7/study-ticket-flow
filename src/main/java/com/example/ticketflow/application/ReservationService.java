@@ -4,6 +4,7 @@ import com.example.ticketflow.application.dto.ReservationCreateCommand;
 import com.example.ticketflow.domain.reservation.Reservation;
 import com.example.ticketflow.domain.reservation.ReservationRepository;
 import com.example.ticketflow.domain.reservation.ReservationStatus;
+import com.example.ticketflow.domain.seat.SeatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +16,13 @@ import java.time.LocalDateTime;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
+    private final SeatRepository seatRepository; // 비관락을 위해 추가
 
     @Transactional
     public Long holdSeat(ReservationCreateCommand command) {
+
+        // 0. 좌석에 대한 비관적 락을 적용하여 동시성 문제 방지
+        seatRepository.findByIdWithLock(command.getSeatId());
 
         // 1. 좌석이 이미 예약되었는지 확인
         reservationRepository.findBySeatIdAndStatusNot(command.getSeatId(), ReservationStatus.EXPIRED)
