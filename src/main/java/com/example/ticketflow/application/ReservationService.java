@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -52,5 +53,19 @@ public class ReservationService {
 
         // 3. 예약 ID 반환, 저장은 트랜잭션 커밋 시점에 자동으로 처리됨
         return reservation.getId();
+    }
+
+    @Transactional
+    public int expireOverdueReservations() {
+        List<Reservation> expiredReservations = reservationRepository.findByStatusAndExpiredAtLessThan(
+                ReservationStatus.HELD,
+                LocalDateTime.now()
+        );
+
+        for (Reservation reservation : expiredReservations) {
+            reservation.expire();
+        }
+
+        return expiredReservations.size();
     }
 }

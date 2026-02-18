@@ -45,4 +45,10 @@ public class Reservation {
 
         this.status = ReservationStatus.CONFIRMED;
     }
+
+    public void expire() {
+        if (this.status == ReservationStatus.HELD) {
+            this.status = ReservationStatus.EXPIRED;
+        }
+    }
 }
