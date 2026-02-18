@@ -20,10 +20,7 @@ public class Seat {
     private Long hallId;
 
     @Column(nullable = false)
-    private String seatCode;
-
-    @Version
-    private Long version;
+    private String seatCode;햣
 
     public Seat(Long hallId, String seatCode) {
         this.hallId = hallId;
