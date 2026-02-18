@@ -4,6 +4,7 @@ import com.example.ticketflow.application.dto.ReservationCreateCommand;
 import com.example.ticketflow.domain.reservation.Reservation;
 import com.example.ticketflow.domain.reservation.ReservationRepository;
 import com.example.ticketflow.domain.reservation.ReservationStatus;
+import com.example.ticketflow.domain.seat.Seat;
 import com.example.ticketflow.domain.seat.SeatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,11 @@ public class ReservationService {
     public Long holdSeat(ReservationCreateCommand command) {
 
         // 0. 좌석에 대한 비관적 락을 적용하여 동시성 문제 방지
-        seatRepository.findByIdWithLock(command.getSeatId());
+//        seatRepository.findByIdWithLock(command.getSeatId());
+
+        // 0. 좌석이 존재하는지 확인
+        Seat seat = seatRepository.findByIdWithOptimisticLock(command.getSeatId())
+                .orElseThrow(() -> new IllegalArgumentException("좌석이 없습니다."));
 
         // 1. 좌석이 이미 예약되었는지 확인
         reservationRepository.findBySeatIdAndStatusNot(command.getSeatId(), ReservationStatus.EXPIRED)

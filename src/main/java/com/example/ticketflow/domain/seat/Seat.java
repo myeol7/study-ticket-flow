@@ -22,6 +22,9 @@ public class Seat {
     @Column(nullable = false)
     private String seatCode;
 
+    @Version
+    private Long version;
+
     public Seat(Long hallId, String seatCode) {
         this.hallId = hallId;
         this.seatCode = seatCode;
