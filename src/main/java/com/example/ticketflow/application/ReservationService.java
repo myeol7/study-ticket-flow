@@ -26,7 +26,7 @@ public class ReservationService {
         seatRepository.findByIdWithLock(command.getSeatId());
 
         // 1. 좌석이 이미 예약되었는지 확인
-        reservationRepository.findBySeatIdAndStatusNot(command.getSeatId(), ReservationStatus.EXPIRED)
+        reservationRepository.findBySeatIdAndStatusIn(command.getSeatId(), List.of(ReservationStatus.HELD, ReservationStatus.CONFIRMED))
                 .ifPresent(reservation -> {
                     throw new IllegalStateException("이미 예약된 좌석입니다.");
                 });
@@ -52,6 +52,18 @@ public class ReservationService {
         reservation.confirm();
 
         // 3. 예약 ID 반환, 저장은 트랜잭션 커밋 시점에 자동으로 처리됨
+        return reservation.getId();
+    }
+
+    @Transactional
+    public Long cancelReservation(Long reservationId) {
+        // 1. 예약 조회
+        Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약 ID입니다."));
+
+        // 2. 예약 취소 (엔티티에 위임)
+        reservation.cancel();
+
         return reservation.getId();
     }
 
