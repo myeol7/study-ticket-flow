@@ -32,7 +32,10 @@ public class SeatFacade {
         List<Long> seatIds = seats.stream().map(Seat::getId).toList();
 
         // 3. 해당 좌석들의 유요한 예약 조회
-        List<Reservation> reservations = reservationRepository.findBySeatIdInAndStatusNot(seatIds, ReservationStatus.EXPIRED);
+        List<Reservation> reservations = reservationRepository.findBySeatIdInAndStatusIn(
+                seatIds,
+                List.of(ReservationStatus.HELD, ReservationStatus.CONFIRMED)
+        );
 
         // 4. 조회를 빠를게 하기 위해 Map으로 변환
         Map<Long, Reservation> reservationMap = reservations.stream()

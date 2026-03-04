@@ -51,4 +51,16 @@ public class Reservation {
             this.status = ReservationStatus.EXPIRED;
         }
     }
+
+    public void cancel() {
+        if (this.status == ReservationStatus.CANCELED) {
+            throw new IllegalStateException("이미 취소된 예약입니다.");
+        }
+        if (this.status == ReservationStatus.EXPIRED) {
+            throw new IllegalStateException("이미 만료된 예약은 취소할 수 없습니다.");
+        }
+
+        // HELD(임시예약) 또는 CONFIRMED(확정) 상태일 때만 취소 상태로 변경
+        this.status = ReservationStatus.CANCELED;
+    }
 }

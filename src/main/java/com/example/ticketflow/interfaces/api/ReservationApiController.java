@@ -34,4 +34,14 @@ public class ReservationApiController {
         }
     }
 
+    @PostMapping("/api/reservations/{id}/cancel")
+    public ResponseEntity<String> cancelReservation(@PathVariable Long id) {
+        try {
+            reservationService.cancelReservation(id);
+            return ResponseEntity.ok("예약 취소 성공.");
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

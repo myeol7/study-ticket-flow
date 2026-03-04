@@ -29,13 +29,22 @@
             .then(handleResponse);
     }
 
-    // 예약 확정 (Confirm) - [신규 기능]
+    // 예약 확정 (Confirm)
     function confirmReservation(reservationId) {
         fetch(`/api/reservations/${reservationId}/confirm`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         })
             .then(handleResponse);
+    }
+
+    // 예약 취소 (Cancel)
+    function cancelReservation(reservationId) {
+        fetch(`/api/reservations/${reservationId}/cancel`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(handleResponse);
     }
 
     // 공통 응답 처리
@@ -63,10 +72,13 @@
                     if (confirm(seatNo + ' 좌석을 예약(Hold) 하시겠습니까?')) {
                         holdSeat(seatId);
                     }
-                } else if (status === 'HELD') {
-                    // HELD 상태면 확정할지 물어봄
+                }else if (status === 'HELD') {
                     if (confirm(seatNo + ' 예약을 확정(Confirm) 하시겠습니까?')) {
                         confirmReservation(reservationId);
+                    }
+                } else if (status === 'CONFIRMED') { // [추가된 부분]
+                    if (confirm(seatNo + ' 예약을 정말 취소(Cancel) 하시겠습니까?')) {
+                        cancelReservation(reservationId);
                     }
                 } else {
                     alert('이미 확정된 좌석입니다.');
