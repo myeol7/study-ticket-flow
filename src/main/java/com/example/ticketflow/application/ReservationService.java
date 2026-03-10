@@ -1,6 +1,8 @@
 package com.example.ticketflow.application;
 
 import com.example.ticketflow.application.dto.ReservationCreateCommand;
+import com.example.ticketflow.domain.Idempotency.IdempotencyHistory;
+import com.example.ticketflow.domain.Idempotency.IdempotencyHistoryRepository;
 import com.example.ticketflow.domain.reservation.Reservation;
 import com.example.ticketflow.domain.reservation.ReservationRepository;
 import com.example.ticketflow.domain.reservation.ReservationStatus;
@@ -18,6 +20,7 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final SeatRepository seatRepository; // 비관락을 위해 추가
+    private final IdempotencyHistoryRepository idempotencyHistoryRepository; // 멱등성 처리를 위한 레포지토리
 
     @Transactional
     public Long holdSeat(ReservationCreateCommand command) {
@@ -43,7 +46,11 @@ public class ReservationService {
     }
 
     @Transactional
-    public Long confirmReservation(Long reservationId) {
+    public Long confirmReservation(Long reservationId, String idempotencyKey) {
+
+        // 0. [Fast-Fail] 가장 먼저 멱등성 키를 저장 (중복이면 여기서 예외 터짐)
+        idempotencyHistoryRepository.save(new IdempotencyHistory(idempotencyKey));
+
         // 1. 예약 조회
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약 ID입니다."));

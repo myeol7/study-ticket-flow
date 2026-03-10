@@ -17,75 +17,88 @@
     </style>
 </head>
 <script>
-    // 예약 요청 (Hold)
-    function holdSeat(seatId) {
-        const command = { seatId: seatId, userId: 999 }; // 테스트용 유저 ID
+const idempotencyKey = crypto.randomUUID();
 
-        fetch('/api/reservations', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(command)
-        })
-            .then(handleResponse);
-    }
+// 예약 요청 (Hold)
+function holdSeat(seatId) {
+    const command = { seatId: seatId, userId: 999 }; // 테스트용 유저 ID
 
-    // 예약 확정 (Confirm)
-    function confirmReservation(reservationId) {
-        fetch(`/api/reservations/${reservationId}/confirm`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(handleResponse);
-    }
-
-    // 예약 취소 (Cancel)
-    function cancelReservation(reservationId) {
-        fetch(`/api/reservations/${reservationId}/cancel`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
+    fetch('/api/reservations', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': idempotencyKey
+        },
+        body: JSON.stringify(command)
+    })
         .then(handleResponse);
-    }
+}
 
-    // 공통 응답 처리
-    function handleResponse(response) {
-        if (response.ok) {
-            alert('처리되었습니다.');
-            window.location.reload();
-        } else {
-            response.text().then(msg => alert('실패: ' + msg));
+// 예약 확정 (Confirm)
+function confirmReservation(reservationId) {
+
+    fetch(`/api/reservations/${reservationId}/confirm`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': idempotencyKey
         }
+    })
+    .then(handleResponse);
+}
+
+// 예약 취소 (Cancel)
+function cancelReservation(reservationId) {
+
+    fetch(`/api/reservations/${reservationId}/cancel`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': idempotencyKey
+        }
+    })
+    .then(handleResponse);
+}
+
+// 공통 응답 처리
+function handleResponse(response) {
+    if (response.ok) {
+        alert('처리되었습니다.');
+        window.location.reload();
+    } else {
+        response.text().then(msg => alert('실패: ' + msg));
     }
+}
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const seats = document.querySelectorAll('.seat-card');
+document.addEventListener('DOMContentLoaded', function() {
+    const seats = document.querySelectorAll('.seat-card');
 
-        seats.forEach(seat => {
-            seat.addEventListener('click', function() {
-                const seatId = this.dataset.id;
-                // HTML에 th:data-reservation-id 속성이 추가되어야 함 (아래 HTML 수정 참고)
-                const reservationId = this.dataset.reservationId;
-                const status = this.querySelector('p').innerText;
-                const seatNo = this.querySelector('h3').innerText;
+    seats.forEach(seat => {
+        seat.addEventListener('click', function() {
+            const seatId = this.dataset.id;
+            // HTML에 th:data-reservation-id 속성이 추가되어야 함 (아래 HTML 수정 참고)
+            const reservationId = this.dataset.reservationId;
+            const status = this.querySelector('p').innerText;
+            const seatNo = this.querySelector('h3').innerText;
 
-                if (status === 'AVAILABLE') {
-                    if (confirm(seatNo + ' 좌석을 예약(Hold) 하시겠습니까?')) {
-                        holdSeat(seatId);
-                    }
-                }else if (status === 'HELD') {
-                    if (confirm(seatNo + ' 예약을 확정(Confirm) 하시겠습니까?')) {
-                        confirmReservation(reservationId);
-                    }
-                } else if (status === 'CONFIRMED') { // [추가된 부분]
-                    if (confirm(seatNo + ' 예약을 정말 취소(Cancel) 하시겠습니까?')) {
-                        cancelReservation(reservationId);
-                    }
-                } else {
-                    alert('이미 확정된 좌석입니다.');
+            if (status === 'AVAILABLE') {
+                if (confirm(seatNo + ' 좌석을 예약(Hold) 하시겠습니까?')) {
+                    holdSeat(seatId);
                 }
-            });
+            }else if (status === 'HELD') {
+                if (confirm(seatNo + ' 예약을 확정(Confirm) 하시겠습니까?')) {
+                    confirmReservation(reservationId);
+                }
+            } else if (status === 'CONFIRMED') { // [추가된 부분]
+                if (confirm(seatNo + ' 예약을 정말 취소(Cancel) 하시겠습니까?')) {
+                    cancelReservation(reservationId);
+                }
+            } else {
+                alert('이미 확정된 좌석입니다.');
+            }
         });
     });
+});
 </script>
 <body>
 <div class="container">
